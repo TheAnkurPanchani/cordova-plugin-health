@@ -36,3 +36,10 @@ Log of changes
 
 * some bugfixes
 * Google services version locked to specific version but changeable
+
+### v1.1.4
+
+* Remove dependency on Google Fit App in availability check
+* Google service version upgrade. play-services-fitness:18.0.0
+* Add new Google service. play-services-auth:17.0.0
+* Start recording user activity on authorization

@@ -1,20 +1,20 @@
 {
-  "version": "1.1.3",
-  "name": "cordova-plugin-health",
+  "version": "1.1.4",
+  "name": "@theankurpanchani/cordova-plugin-health",
   "cordova_name": "Health",
   "description": "A plugin that abstracts fitness and health repositories like Apple HealthKit or Google Fit",
   "license": "MIT",
-  "author": "Dario Salvi",
-  "homepage": "https://github.com/dariosalvi78/cordova-plugin-health",
-  "repo": "https://github.com/dariosalvi78/cordova-plugin-health.git",
+  "author": "Ankur Panchani",
+  "homepage": "https://github.com/TheAnkurPanchani/cordova-plugin-health",
+  "repo": "https://github.com/TheAnkurPanchani/cordova-plugin-health.git",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dariosalvi78/cordova-plugin-health.git"
+    "url": "https://github.com/TheAnkurPanchani/cordova-plugin-health.git"
   },
   "bugs": {
-    "url": "https://github.com/dariosalvi78/cordova-plugin-health/issues"
+    "url": "https://github.com/TheAnkurPanchani/cordova-plugin-health/issues"
   },
-  "issue": "https://github.com/dariosalvi78/cordova-plugin-health/issues",
+  "issue": "https://github.com/TheAnkurPanchani/cordova-plugin-health/issues",
   "keywords": [
     "HealthKit",
     "Google Fit",
@@ -31,5 +31,9 @@
       "name": "cordova",
       "version": ">=6.0.0"
     }
-  ]
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/",
+    "access": "public"
+  }
 }

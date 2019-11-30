@@ -226,6 +226,7 @@ navigator.health.requestAuthorization(datatypes, successCallback, errorCallback)
 - It will try to get authorization from the Google fitness APIs. It is necessary that the app's package name and the signing key are registered in the Google API console (see [here](https://developers.google.com/fit/android/get-api-key)).
 - Be aware that if the activity is destroyed (e.g. after a rotation) or is put in background, the connection to Google Fit may be lost without any callback. Going through the authorization will ensure that the app is connected again.
 - In Android 6 and over, this function will also ask for some dynamic permissions if needed (e.g. in the case of "distance" or "activity", it will need access to ACCESS_FINE_LOCATION).
+- On successful authorization, "activity" recording will be subscribed.
 
 #### iOS quirks
 
