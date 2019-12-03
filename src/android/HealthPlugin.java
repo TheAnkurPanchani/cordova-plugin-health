@@ -2,7 +2,6 @@ package org.apache.cordova.health;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -11,9 +10,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import android.util.Log;
 
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptionsExtension;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.Scopes;
@@ -23,7 +19,6 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
-import com.google.android.gms.fitness.FitnessOptions;
 import com.google.android.gms.fitness.data.Bucket;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
@@ -38,7 +33,6 @@ import com.google.android.gms.fitness.request.DataReadRequest;
 import com.google.android.gms.fitness.request.DataTypeCreateRequest;
 import com.google.android.gms.fitness.result.DataReadResult;
 import com.google.android.gms.fitness.result.DataTypeResult;
-import com.google.android.gms.tasks.Task;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -185,19 +179,6 @@ public class HealthPlugin extends CordovaPlugin {
         this.cordova = cordova;
     }
 
-    // Start recording user activities
-    private void recordActivity() {
-        GoogleSignInOptionsExtension fitnessOptions = FitnessOptions.builder()
-                .addDataType(DataType.TYPE_ACTIVITY_SEGMENT, FitnessOptions.ACCESS_READ).build();
-
-        Context androidContext = this.cordova.getActivity().getApplicationContext();
-        GoogleSignInAccount googleSignInAccount = GoogleSignIn.getAccountForExtension(androidContext, fitnessOptions);
-
-        // Samples the user's activity once per minute.
-        Task<Void> response = Fitness.getRecordingClient(androidContext, googleSignInAccount)
-                .subscribe(DataType.TYPE_ACTIVITY_SEGMENT);
-    }
-
     // called once authorisation is completed
     // creates custom data types
     private void authReqSuccess() {
@@ -208,7 +189,16 @@ public class HealthPlugin extends CordovaPlugin {
             public void run() {
                 try {
                     String packageName = cordova.getActivity().getApplicationContext().getPackageName();
-                    recordActivity();
+
+                    // Start recording user activities
+                    PendingResult<Status> statusPendingResult = Fitness.RecordingApi.subscribe(mClient,
+                            DataType.TYPE_ACTIVITY_SEGMENT);
+                    Status statusResult = statusPendingResult.await();
+                    if (!statusResult.getStatus().isSuccess()) {
+                        authReqCallbackCtx.error(statusResult.getStatus().getStatusMessage());
+                        return;
+                    }
+                    Log.i(TAG, "Recording of user activities started.");
 
                     DataTypeCreateRequest request = new DataTypeCreateRequest.Builder().setName(packageName + ".gender")
                             .addField("gender", Field.FORMAT_STRING).build();
@@ -574,6 +564,7 @@ public class HealthPlugin extends CordovaPlugin {
 
         GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this.cordova.getActivity());
         builder.addApi(Fitness.HISTORY_API);
+        builder.addApi(Fitness.RECORDING_API);
         builder.addApi(Fitness.CONFIG_API);
         builder.addApi(Fitness.SESSIONS_API);
         // scopes:
@@ -590,24 +581,9 @@ public class HealthPlugin extends CordovaPlugin {
         }
         if (locationscope == READ_WRITE_PERMS) { // specifially request read write permission for location.
             builder.addScope(new Scope(Scopes.FITNESS_LOCATION_READ_WRITE));
-        } else if (locationscope == READ_PERMS || activityscope == READ_PERMS || activityscope == READ_WRITE_PERMS) { // if
-                                                                                                                      // read
-                                                                                                                      // permission
-                                                                                                                      // request
-                                                                                                                      // for
-                                                                                                                      // location
-                                                                                                                      // or
-                                                                                                                      // any
-                                                                                                                      // read/write
-                                                                                                                      // permissions
-                                                                                                                      // for
-                                                                                                                      // activities
-                                                                                                                      // were
-                                                                                                                      // requested
-                                                                                                                      // then
-                                                                                                                      // give
-                                                                                                                      // read
-                                                                                                                      // location
+        } else if (locationscope == READ_PERMS || activityscope == READ_PERMS || activityscope == READ_WRITE_PERMS) {
+            // if read permission request for location or any read/write permissions for
+            // activities were requested then give read location
             builder.addScope(new Scope(Scopes.FITNESS_LOCATION_READ));
         }
         if (nutritionscope == READ_PERMS) {
@@ -691,6 +667,7 @@ public class HealthPlugin extends CordovaPlugin {
         GoogleApiClient.Builder builder = new GoogleApiClient.Builder(
                 this.cordova.getActivity().getApplicationContext());
         builder.addApi(Fitness.HISTORY_API);
+        builder.addApi(Fitness.RECORDING_API);
         builder.addApi(Fitness.CONFIG_API);
         builder.addApi(Fitness.SESSIONS_API);
 

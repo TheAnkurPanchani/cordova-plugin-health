@@ -43,3 +43,7 @@ Log of changes
 * Google service version upgrade. play-services-fitness:18.0.0
 * Add new Google service. play-services-auth:17.0.0
 * Start recording user activity on authorization
+
+### v1.1.5
+
+* Use deprecated APIs to record user activity
