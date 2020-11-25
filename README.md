@@ -26,7 +26,7 @@ cordova plugin add cordova-plugin-health --variable HEALTH_READ_PERMISSION='App 
 
 `HEALTH_READ_PERMISSION` and `HEALTH_WRITE_PERMISSION` are shown when the app tries to grant access to data in HealthKit.
 
-`GMS_VERSION` allow you to override the google services version.
+`FIT_API_VERSION` and `PLAY_AUTH_VERSION` allow you to override the google services version.
 
 Phonegap Build `config.xml`:
 
@@ -35,7 +35,7 @@ Phonegap Build `config.xml`:
 <plugin name="cordova-plugin-health" source="npm">
   <variable name="HEALTH_READ_PERMISSION" value="App needs read access"/>
   <variable name="HEALTH_WRITE_PERMISSION" value="App needs write access"/>
-  <variable name="GMS_VERSION" value="16.0.1"/>
+  <variable name="FIT_API_VERSION" value="19.0.0"/>
 </plugin>
 
 <!-- Only if iOS -->
@@ -81,7 +81,8 @@ This is known to happen when using the Ionic Package cloud service.
 * If you haven't configured the APIs correctly, particularly the OAuth requirements, you are likely to get 'User cancelled the dialog' as an error message, particularly this can happen if you mismatch the signing certificate and SHA-1 fingerprint.
 * You can use the Google Fitness API even if the user doesn't have Google Fit installed, but there has to be some other fitness app putting data into the Fitness API otherwise your queries will always be empty. See the [the original documentation](https://developers.google.com/fit/overview).
 * If you are planning to use [health data types](https://developers.google.com/android/reference/com/google/android/gms/fitness/data/HealthDataTypes) in Google Fit, be aware that you are always able to read them, but if you want write access [you need to ask permission to Google](https://developers.google.com/fit/android/data-types#restricted_data_types)
-* You can change which google services version this plugin uses by setting the `GMS_VERSION` variable in `config.xml`. By default it will use the version `16.0.1`. From version 15 [you don't have to use the same google services version](https://developers.google.com/android/guides/versioning) accross all your cordova plugins. You can track google services releases [here](https://developers.google.com/android/guides/releases).
+* You can change which Google Play Services Fitness API version this plugin uses by setting the `FIT_API_VERSION` variable in `config.xml` and the version of the Auth API using `PLAY_AUTH_VERSION`. By default it will use version `19.0.0` for play-services-fitness and version `18.1.0` for play-services-auth. From version 15 of the Play Services [you don't have to use the same version](https://developers.google.com/android/guides/versioning) accross all your cordova plugins. You can track google services releases [here](https://developers.google.com/android/guides/releases).
+* This plugin supports AndroidX out of the box, you can configure your project to support it if you need to. You will need to [activate AndroidX](https://cordova.apache.org/announcements/2020/06/29/cordova-android-9.0.0.html) in the Android platform.
 
 ## Supported data types
 
@@ -100,13 +101,17 @@ As HealthKit does not allow adding custom data types, only a subset of data type
 | height          | m     | HKQuantityTypeIdentifierHeight                | TYPE_HEIGHT                              |
 | weight          | kg    | HKQuantityTypeIdentifierBodyMass              | TYPE_WEIGHT                              |
 | heart_rate      | count/min | HKQuantityTypeIdentifierHeartRate         | TYPE_HEART_RATE_BPM                      |
-| heart_rate.variability      | ms | HKQuantityTypeIdentifierHeartRateVariabilitySDNN         | NA                                       |
+| heart_rate.resting | count/min | HKQuantityTypeIdentifierRestingHearRate | TBD                      |
+| heart_rate.variability      | ms | HKQuantityTypeIdentifierHeartRateVariabilitySDNN         | NA                   |
+| resp_rate       | count/min | HKQuantityTypeIdentifierRespiratoryRate   | TBD                      |
+| vo2max          | ml/(kg * min) | HKQuantityTypeIdentifierVO2Max   | TBD                      |
+| temperature     | Celsius | HKQuantityTypeIdentifierBodyTemperature       | TBD                      |
 | fat_percentage  | %     | HKQuantityTypeIdentifierBodyFatPercentage     | TYPE_BODY_FAT_PERCENTAGE                 |
 | blood_glucose   | mmol/L | HKQuantityTypeIdentifierBloodGlucose         | TYPE_BLOOD_GLUCOSE                       |
 | insulin         | IU    | HKQuantityTypeIdentifierInsulinDelivery       | NA                                       |
 | blood_pressure  | mmHg  | HKCorrelationTypeIdentifierBloodPressure      | TYPE_BLOOD_PRESSURE                      |
-| gender          |       | HKCharacteristicTypeIdentifierBiologicalSex   | custom (YOUR_PACKAGE_NAME.gender)        |
-| date_of_birth   |       | HKCharacteristicTypeIdentifierDateOfBirth     | custom (YOUR_PACKAGE_NAME.date_of_birth) |
+| gender          |       | HKCharacteristicTypeIdentifierBiologicalSex   | NA        |
+| date_of_birth   |       | HKCharacteristicTypeIdentifierDateOfBirth     | NA        |
 | mindfulness     | sec   | HKCategoryTypeIdentifierMindfulSession        | NA                                       |
 | nutrition       |       | HKCorrelationTypeIdentifierFood               | TYPE_NUTRITION                           |
 | nutrition.calories | kcal | HKQuantityTypeIdentifierDietaryEnergyConsumed | TYPE_NUTRITION, NUTRIENT_CALORIES      |
@@ -136,11 +141,11 @@ Returned objects contain a set of fixed fields:
 
 - startDate: {type: Date} a date indicating when the data point starts
 - endDate: {type: Date} a date indicating when the data point ends
-- sourceBundleId: {type: String} the identifier of the app that produced the data
-- sourceName: {type: String} the name of the app that produced the data (as it appears to the user)
 - unit: {type: String} the unit of measurement
 - value: the actual value
-- id: (only on iOS) the unique identifier of that measurement
+- sourceBundleId: {type: String} the identifier of the app that produced the data
+- sourceName: {type: String} (only on iOS) the name of the app that produced the data (as it appears to the user)
+- id: {type: String} (only on iOS) the unique identifier of that measurement
 
 Example values:
 
@@ -154,12 +159,18 @@ Example values:
 | height         | 185.9                             |
 | weight         | 83.3                              |
 | heart_rate     | 66                                |
+| heart_rate.resting | 63                            |
+| heart_rate.variability | 100                       |
+| resp_rate      | 12                                |
+| vo2max         | 34                                |
+| temperature    | 36.2                              |
 | fat_percentage | 31.2                              |
 | blood_glucose  | { glucose: 5.5, meal: 'breakfast', sleep: 'fully_awake', source: 'capillary_blood' }<br />**Notes**: <br />to convert to mg/dL, multiply by `18.01559` ([The molar mass of glucose is 180.1559](http://www.convertunits.com/molarmass/Glucose))<br />`meal` can be: 'before_meal' (iOS only), 'after_meal' (iOS only), 'fasting', 'breakfast', 'dinner', 'lunch', 'snack', 'unknown', 'before_breakfast', 'before_dinner', 'before_lunch', 'before_snack', 'after_breakfast', 'after_dinner', 'after_lunch', 'after_snack'<br />`sleep` can be: 'fully_awake', 'before_sleep', 'on_waking', 'during_sleep'<br />`source` can be: 'capillary_blood' ,'interstitial_fluid', 'plasma', 'serum', 'tears', whole_blood' |
 | insulin        | { insulin: 2.3, reason: 'bolus' }<br />**Notes**: Insulin is currently only available on iOS<br />`reason` can be 'bolus' or 'basal' |
 | blood_pressure | { systolic: 110, diastolic: 70 }  |
 | gender         | "male"                            |
 | date_of_birth  | { day: 3, month: 12, year: 1978 } |
+| mindfulness     | 1800 |
 | nutrition      | { item: "cheese", meal_type: "lunch", brand_name: "McDonald's", nutrients: { nutrition.fat.saturated: 11.5, nutrition.calories: 233.1 } }<br />**Note**: the `brand_name` property is only available on iOS |
 | nutrition.X    | 12.4                              |
 
@@ -371,7 +382,6 @@ navigator.health.store({
 	endDate: new Date(),
 	dataType: 'steps',
 	value: 180,
-	sourceName: 'my_app',
 	sourceBundleId: 'com.example.my_app'
 }, successCallback, errorCallback)
 ```
@@ -380,7 +390,6 @@ navigator.health.store({
 - endDate: {type: Date}, end date to which he new data ends
 - dataType: {type: a String}, the data type
 - value: {type: a number or an Object}, the value, depending on the actual data type. In the case of activity, the value must be set as the activity name.
-- sourceName: {type: String}, the source that produced this data. In iOS this is ignored and set automatically to the name of your app.
 - sourceBundleId: {type: String}, the complete package of the source that produced this data. In Android, if not specified, it's assigned to the package of the App. In iOS this is ignored and set automatically to the bundle id of the app.
 - successCallback: {type: function}, called if all OK
 - errorCallback: {type: function(err)}, called if something went wrong, err contains a textual description of the problem

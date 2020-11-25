@@ -15,6 +15,7 @@ dataTypes['calories.basal'] = 'HKQuantityTypeIdentifierBasalEnergyBurned';
 dataTypes['height'] = 'HKQuantityTypeIdentifierHeight';
 dataTypes['weight'] = 'HKQuantityTypeIdentifierBodyMass';
 dataTypes['heart_rate'] = 'HKQuantityTypeIdentifierHeartRate';
+dataTypes['heart_rate.resting'] = 'HKQuantityTypeIdentifierRestingHeartRate';
 dataTypes['heart_rate.variability'] = 'HKQuantityTypeIdentifierHeartRateVariabilitySDNN';
 dataTypes['fat_percentage'] = 'HKQuantityTypeIdentifierBodyFatPercentage';
 dataTypes['activity'] = 'HKWorkoutTypeIdentifier'; // and HKCategoryTypeIdentifierSleepAnalysis
@@ -42,8 +43,11 @@ dataTypes['blood_glucose'] = 'HKQuantityTypeIdentifierBloodGlucose';
 dataTypes['insulin'] = 'HKQuantityTypeIdentifierInsulinDelivery';
 dataTypes['appleExerciseTime'] = 'HKQuantityTypeIdentifierAppleExerciseTime';
 dataTypes['blood_pressure'] = 'HKCorrelationTypeIdentifierBloodPressure'; // when requesting auth it's HKQuantityTypeIdentifierBloodPressureSystolic and HKQuantityTypeIdentifierBloodPressureDiastolic
+dataTypes['resp_rate'] = 'HKQuantityTypeIdentifierRespiratoryRate';
+dataTypes['vo2max'] = 'HKQuantityTypeIdentifierVO2Max';
+dataTypes['temperature'] = 'HKQuantityTypeIdentifierBodyTemperature';
 
-
+// for parseable units in HK, see https://developer.apple.com/documentation/healthkit/hkunit/1615733-unitfromstring?language=objc
 var units = [];
 units['steps'] = 'count';
 units['distance'] = 'm';
@@ -53,6 +57,7 @@ units['calories.basal'] = 'kcal';
 units['height'] = 'm';
 units['weight'] = 'kg';
 units['heart_rate'] = 'count/min';
+units['heart_rate.resting'] = 'count/min';
 units['heart_rate.variability'] = 'ms';
 units['fat_percentage'] = '%';
 units['nutrition'] = ['g', 'ml', 'kcal'];
@@ -78,6 +83,9 @@ units['blood_glucose'] = 'mmol/L';
 units['insulin'] = 'IU';
 units['appleExerciseTime'] = 'min';
 units['blood_pressure'] = 'mmHg';
+units['resp_rate'] = 'count/min';
+units['vo2max'] = 'ml/(kg*min)';
+units['temperature'] = 'degC';
 
 // just a wrapper for querying Telerik's if HK is available
 Health.prototype.isAvailable = function (success, error) {
