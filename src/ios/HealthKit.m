@@ -653,6 +653,7 @@ static NSString *const HKPluginKeyUUID = @"UUID";
     HKWorkoutActivityType activityTypeEnum = [WorkoutActivityConversion convertStringToHKWorkoutActivityType:activityType];
 
     BOOL requestReadPermission = (args[@"requestReadPermission"] == nil || [args[@"requestReadPermission"] boolValue]);
+    BOOL *cycling = (args[@"cycling"] == nil || [args[@"cycling"] boolValue]);
 
     // optional energy
     NSNumber *energy = args[@"energy"];
@@ -719,11 +720,21 @@ static NSString *const HKPluginKeyUUID = @"UUID";
                 if (success_save) {
                     // now store the samples, so it shows up in the health app as well (pass this in as an option?)
                     if (energy != nil || distance != nil) {
-                        HKQuantitySample *sampleActivity = [HKQuantitySample quantitySampleWithType:[HKQuantityType quantityTypeForIdentifier:
-                                        HKQuantityTypeIdentifierDistanceWalkingRunning]
-                                                                                           quantity:nrOfDistanceUnits
-                                                                                          startDate:startDate
-                                                                                            endDate:endDate];
+                        HKQuantitySample *sampleActivity = nil;
+                        if(cycling != nil && cycling){
+                            sampleActivity = [HKQuantitySample quantitySampleWithType:[HKQuantityType quantityTypeForIdentifier:
+                                            HKQuantityTypeIdentifierDistanceCycling]
+                                                                                            quantity:nrOfDistanceUnits
+                                                                                            startDate:startDate
+                                                                                                endDate:endDate];
+                        } else {
+                            sampleActivity = [HKQuantitySample quantitySampleWithType:[HKQuantityType quantityTypeForIdentifier:
+                                            HKQuantityTypeIdentifierDistanceWalkingRunning]
+                                                                                            quantity:nrOfDistanceUnits
+                                                                                            startDate:startDate
+                                                                                                endDate:endDate];
+
+                        }
                         HKQuantitySample *sampleCalories = [HKQuantitySample quantitySampleWithType:[HKQuantityType quantityTypeForIdentifier:
                                         HKQuantityTypeIdentifierActiveEnergyBurned]
                                                                                            quantity:nrOfEnergyUnits
