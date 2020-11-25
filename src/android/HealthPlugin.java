@@ -308,25 +308,16 @@ public class HealthPlugin extends CordovaPlugin {
         return false;
     }
 
-    // detects if a) Google APIs are available, b) Google Fit is actually installed
+    // detects if Google APIs are available
     private void isAvailable(final CallbackContext callbackContext) {
         // first check that the Google APIs are available
         GoogleApiAvailability gapi = GoogleApiAvailability.getInstance();
         int apiresult = gapi.isGooglePlayServicesAvailable(this.cordova.getActivity());
-        if (apiresult == ConnectionResult.SUCCESS) {
-            // then check that Google Fit is actually installed
-            PackageManager pm = cordova.getActivity().getApplicationContext().getPackageManager();
-            try {
-                pm.getPackageInfo("com.google.android.apps.fitness", PackageManager.GET_ACTIVITIES);
-                // Success return object
-                PluginResult result;
-                result = new PluginResult(PluginResult.Status.OK, true);
-                callbackContext.sendPluginResult(result);
-            } catch (PackageManager.NameNotFoundException e) {
-                Log.d(TAG, "Google Fit not installed");
-            }
-        }
         PluginResult result;
+        if (apiresult == ConnectionResult.SUCCESS) {
+            result = new PluginResult(PluginResult.Status.OK, true);
+            callbackContext.sendPluginResult(result);
+        }
         result = new PluginResult(PluginResult.Status.OK, false);
         callbackContext.sendPluginResult(result);
     }
@@ -392,11 +383,6 @@ public class HealthPlugin extends CordovaPlugin {
         Log.d(TAG, "Accessing account");
         this.account = GoogleSignIn.getAccountForExtension(this.cordova.getContext(), options);
 
-        // Start recording user activities
-        // Samples the user's activity once per minute.
-        Fitness.getRecordingClient(this, this.account).subscribe(DataType.TYPE_ACTIVITY_SEGMENT);
-        Log.i(TAG, "Recording of user activities started.");
-
         if (!GoogleSignIn.hasPermissions(this.account, options)) {
             if (!authAutoresolve) {
                 authReqCallbackCtx.sendPluginResult(new PluginResult(PluginResult.Status.OK, false));
@@ -409,9 +395,18 @@ public class HealthPlugin extends CordovaPlugin {
                         options);
             }
         } else {
+            this.recordActivity();
             // all done!
             authReqCallbackCtx.sendPluginResult(new PluginResult(PluginResult.Status.OK, true));
         }
+    }
+
+    // Start recording user activities
+    private void recordActivity() {
+        // Samples the user's activity once per minute.
+        Fitness.getRecordingClient(this.cordova.getActivity(), this.account)
+            .subscribe(DataType.TYPE_ACTIVITY_SEGMENT);
+        Log.i(TAG, "Recording of user activities started.");
     }
 
     // called when access to Google API is answered
@@ -420,8 +415,10 @@ public class HealthPlugin extends CordovaPlugin {
         if (requestCode == REQUEST_OAUTH) {
             if (resultCode == Activity.RESULT_OK) {
                 Log.i(TAG, "Got authorisation from Google Fit");
+                this.recordActivity();
                 authReqCallbackCtx.sendPluginResult(new PluginResult(PluginResult.Status.OK, true));
             } else if (resultCode == Activity.RESULT_CANCELED) {
+                Log.i(TAG, "User cancelled the dialog");
                 // The user cancelled the login dialog before selecting any action.
                 authReqCallbackCtx.error("User cancelled the dialog");
             } else authReqCallbackCtx.error("Authorisation failed, result code " + resultCode);

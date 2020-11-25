@@ -58,6 +58,11 @@ Log of changes
 * bumped Google Fit API version to 19.0.0
 * fixed bug with water consumption unit in Android
 
-### v2.0.0
+### v2.0.1
 
 * Fix datatype for data recording
+
+### v2.0.2
+
+* Fix data recording api call
+* Remove dependency on Google Fit App in availability check
