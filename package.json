@@ -1,5 +1,5 @@
 {
-  "version": "2.0.0",
+  "version": "2.0.1",
   "name": "@theankur/cordova-plugin-health",
   "cordova_name": "Health",
   "description": "A plugin that abstracts fitness and health repositories like Apple HealthKit or Google Fit",

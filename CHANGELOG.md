@@ -57,3 +57,7 @@ Log of changes
 * BREAKS API: sourceName has been removed from GoogleFit
 * bumped Google Fit API version to 19.0.0
 * fixed bug with water consumption unit in Android
+
+### v2.0.0
+
+* Fix datatype for data recording

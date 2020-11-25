@@ -394,7 +394,7 @@ public class HealthPlugin extends CordovaPlugin {
 
         // Start recording user activities
         // Samples the user's activity once per minute.
-        Fitness.getRecordingClient(this, this.account).subscribe(DataType.TYPE_ACTIVITY_SAMPLES);
+        Fitness.getRecordingClient(this, this.account).subscribe(DataType.TYPE_ACTIVITY_SEGMENT);
         Log.i(TAG, "Recording of user activities started.");
 
         if (!GoogleSignIn.hasPermissions(this.account, options)) {
